@@ -1,0 +1,295 @@
+/* src/App.css (Nuevo Diseño para OnPromotion) */
+
+/* --- Variables y Reset --- */
+:root {
+    --primary-color: #c35555; /* Azul corporativo moderno */
+    --primary-dark: #c35555; 
+    --secondary-color: #6b7280; /* Gris oscuro para texto */
+    --background-color: #f9fafb; /* Fondo muy claro */
+    --card-background: #ffffff;
+    --shadow-light: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    --border-radius: 0.5rem;
+}
+
+body {
+    font-family: 'Inter', 'Arial', sans-serif; /* Fuente moderna */
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: #1f2937;
+}
+
+/* --- Estructura Principal y Navegación --- */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-light);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+nav a, nav button {
+    text-decoration: none;
+    color: var(--secondary-color);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+nav a:hover, nav button:hover:not(.cart-button) {
+    color: var(--primary-color);
+    background-color: #eff6ff; /* Fondo azul muy suave */
+}
+
+/* --- Botones Genéricos (Acciones Primarias) --- */
+button:not(.nav button, .cart-remove-button) {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+button:not(.nav button, .cart-remove-button):hover {
+    background-color: var(--primary-dark);
+}
+
+/* --- Product List (Diseño de Tarjetas) --- */
+.product-list {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.product-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--card-background);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+    transition: transform 0.2s;
+}
+
+.product-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+.product-item p {
+    font-size: 1.125rem;
+    margin: 10px 0;
+}
+
+.product-item strong {
+    color: var(--primary-color);
+}
+
+.product-item button {
+    width: 100%;
+    margin-top: 15px;
+    background-color: #10b981; /* Un color de acción secundario */
+}
+.product-item button:hover {
+    background-color: #059669;
+}
+
+
+/* --- Cart View (Integrado en Nav) --- */
+.cart-view {
+    /* Estilo minimalista en el header */
+    width: auto;
+    padding: 0;
+    border-left: none; 
+    margin-left: 1rem;
+}
+
+.cart-view h2 {
+    font-size: 1.1rem;
+    margin: 0;
+    padding: 0;
+    color: var(--primary-color);
+}
+
+.cart-view ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+    width: 250px; /* Definir un ancho para el dropdown/popover si lo tuvieras */
+}
+
+.cart-view li {
+    font-size: 0.85rem;
+    margin-bottom: 3px;
+    color: var(--secondary-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Estilos para el botón de remover en el carrito */
+.cart-view li button {
+    background: none;
+    color: #ef4444; /* Rojo suave para eliminar */
+    padding: 0.25rem;
+    font-size: 0.9rem;
+    margin-left: 5px;
+}
+
+.cart-view h3 {
+    border-top: 1px dashed var(--border-color);
+    padding-top: 5px;
+    margin-top: 10px;
+    font-size: 1.1em;
+    color: #1f2937;
+    font-weight: 700;
+}
+
+
+/* --- Checkout y Formulario de Auth --- */
+h1 {
+    text-align: center;
+    color: #1f2937;
+    margin-top: 40px;
+}
+
+.pdf-button {
+    background-color: var(--primary-color); 
+    padding: 12px 25px;
+    font-size: 16px;
+    width: 100%;
+    max-width: 600px;
+    display: block;
+    margin: 20px auto;
+}
+
+/* Ajuste del formulario de Auth */
+.auth-form-container {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
+}
+
+/* --- Añade o modifica estos estilos en tu src/App.css --- */
+
+/* Título Centrado */
+.product-list-title {
+    text-align: center;
+    margin-top: 40px;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    color: #1f2937;
+}
+
+/* Contenedor del Grid de Productos */
+.product-list-grid { /* Reemplaza .product-list */
+    max-width: 1200px;
+    margin: 0 auto 40px auto; /* Centrar el grid */
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+/* Estilo de la Tarjeta del Producto */
+.product-item {
+    /* Mantener estilos de tarjeta existentes: fondo blanco, sombra, etc. */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    /* ... otros estilos de tarjeta ... */
+}
+
+/* Estilo de la Imagen */
+.product-image {
+    width: 100%; /* Ocupa todo el ancho de la tarjeta */
+    height: 200px; /* Altura fija para uniformidad */
+    object-fit: cover; /* Asegura que la imagen cubra el área sin distorsión */
+    border-radius: var(--border-radius);
+    margin-bottom: 15px;
+}
+
+.product-details {
+    padding-bottom: 10px;
+}
+
+.product-price {
+    font-weight: bold;
+    color: var(--primary-dark);
+    font-size: 1.2rem;
+}
+
+/* ¡Importante! Eliminar la clase antigua si existe, o renombrarla */
+.product-list { 
+    /* Si tenías la clase .product-list en App.css, elimínala o asegúrate 
+       de que .product-list-grid la haya reemplazado en el JSX */
+}
+
+/* --- Estilos para el Footer (Pie de Página) --- */
+.app-footer {
+    background-color: #333; /* Fondo oscuro, contrastante */
+    color: #f9fafb; /* Texto muy claro */
+    padding: 2rem 2rem;
+    margin-top: 50px;
+    border-top: 5px solid var(--primary-color); /* Toque de color corporativo */
+    font-size: 0.9rem;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.footer-section h4 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.footer-links a, .footer-contact p {
+    display: block;
+    color: #ccc;
+    text-decoration: none;
+    margin-bottom: 5px;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.footer-copy {
+    text-align: center;
+    width: 100%;
+    margin-top: 20px;
+    padding-top: 10px;
+    border-top: 1px dashed #555;
+    color: #999;
+}
