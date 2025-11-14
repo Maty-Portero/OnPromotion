@@ -1,7 +1,5 @@
-// src/store/cartStore.js
+// src/store/cartStore.js (CORREGIDO)
 import { create } from 'zustand';
-
-// Definición de tipos eliminada, ahora es JavaScript estándar
 
 export const useCartStore = create((set, get) => ({
   items: [],
@@ -26,7 +24,26 @@ export const useCartStore = create((set, get) => ({
     });
   },
 
-  removeFromCart: (itemId) => {
+  // 🚩 NUEVA FUNCIÓN: Disminuye la cantidad en 1 unidad
+  decreaseQuantity: (itemId) => {
+    set((state) => ({
+      items: state.items.flatMap(item => {
+        if (item.id === itemId) {
+          // Si la cantidad es mayor a 1, la reducimos
+          if (item.quantity > 1) {
+            return [{ ...item, quantity: item.quantity - 1 }];
+          } else {
+            // Si la cantidad es 1, la eliminamos completamente del carrito (comportamiento por defecto de "Eliminar")
+            return []; 
+          }
+        }
+        return [item];
+      }),
+    }));
+  },
+
+  // Función para eliminar todo el tipo de producto (por si la necesitas más tarde)
+  removeItemType: (itemId) => {
     set((state) => ({
       items: state.items.filter(item => item.id !== itemId),
     }));
@@ -35,7 +52,8 @@ export const useCartStore = create((set, get) => ({
   clearCart: () => set({ items: [] }),
 
   getCartTotal: () => {
-    const total = get().items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    return total.toFixed(2);
+    const total = get().items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    // Devolvemos el número sin toFixed(2) para que el componente CartPage.jsx lo maneje
+    return total; 
   },
 }));
