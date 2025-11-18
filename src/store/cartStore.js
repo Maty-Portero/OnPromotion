@@ -1,59 +1,54 @@
-// src/store/cartStore.js (CORREGIDO)
+// src/store/cartStore.js
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware'; // 1. IMPORTAR PERSIST
 
-export const useCartStore = create((set, get) => ({
-  items: [],
+// Definición de tipos eliminada, ahora es JavaScript estándar
 
-  addToCart: (product) => {
-    set((state) => {
-      const existingItem = state.items.find(item => item.id === product.id);
+// 2. ENVOLVER create CON persist
+export const useCartStore = create(
+  persist(
+    (set, get) => ({
+      items: [],
 
-      if (existingItem) {
-        return {
-          items: state.items.map(item =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          ),
-        };
-      } else {
-        return {
-          items: [...state.items, { ...product, quantity: 1 }],
-        };
-      }
-    });
-  },
+      addToCart: (product) => {
+        set((state) => {
+          const existingItem = state.items.find(item => item.id === product.id);
 
-  // 🚩 NUEVA FUNCIÓN: Disminuye la cantidad en 1 unidad
-  decreaseQuantity: (itemId) => {
-    set((state) => ({
-      items: state.items.flatMap(item => {
-        if (item.id === itemId) {
-          // Si la cantidad es mayor a 1, la reducimos
-          if (item.quantity > 1) {
-            return [{ ...item, quantity: item.quantity - 1 }];
+          if (existingItem) {
+            return {
+              items: state.items.map(item =>
+                item.id === product.id
+                  ? { ...item, quantity: item.quantity + 1 }
+                  : item
+              ),
+            };
           } else {
-            // Si la cantidad es 1, la eliminamos completamente del carrito (comportamiento por defecto de "Eliminar")
-            return []; 
+            return {
+              items: [...state.items, { ...product, quantity: 1 }],
+            };
           }
-        }
-        return [item];
-      }),
-    }));
-  },
+        });
+      },
 
-  // Función para eliminar todo el tipo de producto (por si la necesitas más tarde)
-  removeItemType: (itemId) => {
-    set((state) => ({
-      items: state.items.filter(item => item.id !== itemId),
-    }));
-  },
+      removeFromCart: (itemId) => {
+        set((state) => ({
+          items: state.items.filter(item => item.id !== itemId),
+        }));
+      },
 
-  clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [] }),
 
-  getCartTotal: () => {
-    const total = get().items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    // Devolvemos el número sin toFixed(2) para que el componente CartPage.jsx lo maneje
-    return total; 
-  },
-}));
+      getCartTotal: () => {
+        const total = get().items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+        return total.toFixed(2);
+      },
+    }),
+    // 3. OPCIONES DE CONFIGURACIÓN DEL PERSIST
+    {
+      name: 'shopping-cart-storage', // Nombre clave en localStorage
+      getStorage: () => localStorage, // Indica que use localStorage
+      // Opcional: whitelist o blacklist de estados
+      // whitelist: ['items'], 
+    }
+  ) // Cierre del persist
+); // Cierre del create

@@ -1,45 +1,134 @@
 // src/components/ProductList.jsx
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCartStore } from '../store/cartStore';
-
-// Mock Data con un placeholder para la URL de la imagen
-const MOCK_PRODUCTS = [
-  { id: 101, name: "Pañuelos", price: 150.00, imageUrl: 'https://www.onpromotion.com.ar/uploads/productos/405/15_panuelos.jpg' },
-  { id: 102, name: "Conservadora Bolso Térmico Coleman", price: 85.50, imageUrl: 'https://www.onpromotion.com.ar/uploads/productos/405/4_conservadora-bolso-termico-coleman.jpg' },
-  { id: 103, name: "Mochila Bison Leaf County", price: 29.99, imageUrl: 'https://www.onpromotion.com.ar/uploads/productos/405/16_mochila-bison-leaf-county.jpg' },
-  { id: 104, name: "Headset USB on-ear Trust HS-200", price: 150.00, imageUrl: 'https://www.onpromotion.com.ar/uploads/productos/405/13_headset-usb-on-ear-trust-hs-200.jpg' },
-  { id: 105, name: "Marcador Permanente Sharpie Mini", price: 85.50, imageUrl: 'https://www.onpromotion.com.ar/uploads/productos/405/9_marcador-permanente-sharpie-mini.jpg' },
-  { id: 106, name: "Cuaderno A4 Liso Studio", price: 29.99, imageUrl: 'https://www.onpromotion.com.ar/uploads/productos/405/10_cuaderno-a5-petroleo-vacavaliente.jpg' },
-];
+import { Link } from 'react-router-dom'; 
+import { supabase } from '../supabase/supabaseClient'; // Importar supabase
 
 export const ProductList = () => {
-  const addToCart = useCartStore((state) => state.addToCart);
+  const { addToCart } = useCartStore();
+  const [products, setProducts] = useState([]); 
+  const [loading, setLoading] = useState(true);
+
+  // FUNCIÓN PARA CARGAR PRODUCTOS DESDE SUPABASE
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('id', { ascending: true });
+
+    if (error) {
+      console.error("Error al cargar productos:", error);
+    } else {
+      setProducts(data);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleAddToCart = (product) => {
+    addToCart(product);
+  };
+  
+  if (loading) {
+    return <h2 style={{ textAlign: 'center', marginTop: '50px' }}>Cargando productos...</h2>;
+  }
+  
+  if (products.length === 0) {
+    return <h2 style={{ textAlign: 'center', marginTop: '50px' }}>No hay productos disponibles.</h2>;
+  }
 
   return (
-    <> {/* Usamos un fragmento para envolver el título y el contenedor */}
-      <h2 className="product-list-title">Productos de OnPromotion</h2> {/* Clase para centrar */}
+    <div className="product-list-container" style={{ padding: '20px' }}>
+      <h1 style={{ textAlign: 'center', marginBottom: '40px' }}>Productos Destacados</h1>
       
-      <div className="product-list-grid"> {/* Nueva clase para el grid */}
-        {MOCK_PRODUCTS.map((product) => (
-          <div key={product.id} className="product-item">
-            {/* AGREGAMOS LA IMAGEN */}
-            <img 
-              src={product.imageUrl} 
-              alt={product.name} 
-              className="product-image"
-            />
-            
-            <div className="product-details">
-              <p><strong>{product.name}</strong></p>
-              <p className="product-price">${product.price.toFixed(2)}</p>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+        gap: '30px' 
+      }}>
+        {products.map((product) => (
+          <div 
+            className="product-card" 
+            key={product.id} 
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              padding: '15px',
+              backgroundColor: '#fff',
+              boxShadow: 'var(--shadow-light)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}
+          >
+            {/* Imagen */}
+            <div style={{ 
+              width: '100%', 
+              height: '180px', 
+              marginBottom: '15px', 
+              borderRadius: '6px',
+              overflow: 'hidden',
+            }}>
+              <img 
+                src={product.imageUrl} 
+                alt={product.name}
+                style={{ 
+                  width: '100%', 
+                  height: '100%', 
+                  objectFit: 'cover', 
+                  borderRadius: '6px'
+                }}
+              />
             </div>
-
-            <button onClick={() => addToCart(product)}>
-              ➕ Añadir al Carrito
-            </button>
+            
+            <div className="product-details" style={{ flexGrow: 1 }}>
+              <h4 style={{ margin: '5px 0' }}>{product.name}</h4>
+              <p className="product-price" style={{ fontWeight: 'bold', color: '#c35555', fontSize: '1.4rem', marginTop: '10px', marginBottom: '15px' }}>
+                ${parseFloat(product.price).toFixed(2)}
+              </p>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+              <Link 
+                to={`/product/${product.id}`}
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  padding: '10px 5px',
+                  backgroundColor: 'rgb(195, 85, 85)', 
+                  color: 'white',
+                  textDecoration: 'none', 
+                  borderRadius: '5px',
+                  fontWeight: 'bold',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Ver <br />Más
+              </Link>
+          
+              <button 
+                onClick={() => handleAddToCart(product)}
+                style={{ 
+                  flex: 1,
+                  backgroundColor: '#0FA0CE',
+                  color: 'white',
+                  padding: '10px 5px',
+                  borderRadius: '5px',
+                  border: 'none',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                Añadir al Carrito
+              </button>
+            </div>
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 };

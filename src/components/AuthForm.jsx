@@ -72,7 +72,7 @@ const AuthForm = () => {
         <button 
           type="button" 
           onClick={() => setIsRegistering(!isRegistering)}
-          style={{ background: 'none', color: '#007bff', padding: 0, textDecoration: 'underline' }}
+          style={{ background: 'none', color: 'rgb(195, 85, 85)', padding: 0, textDecoration: 'underline' }}
         >
           {isRegistering ? 'Iniciar Sesión' : 'Regístrate aquí'}
         </button>

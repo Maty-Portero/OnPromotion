@@ -1,134 +1,176 @@
-// src/pages/Account.jsx (CORREGIDO)
+// src/pages/Account.jsx
 import React, { useEffect, useState } from 'react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { Link, useNavigate } from 'react-router-dom'; // Importar Link para el acceso Admin
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../supabase/supabaseClient';
+import { supabase } from '../supabase/supabaseClient'; 
 
-export const Account = () => { // <--- EL COMPONENTE SE EXPORTA CORRECTAMENTE
-  const { user, loading } = useAuth();
+// Función para descargar el PDF
+const generatePDF = async (orderItems, orderId, orderDate, orderTotal) => {
+  // Crear un div temporal para renderizar la factura
+  const tempReceipt = document.createElement('div');
+  tempReceipt.style.padding = '20px';
+  tempReceipt.style.backgroundColor = '#ffffff';
+  tempReceipt.style.color = '#000000';
+  tempReceipt.style.maxWidth = '600px';
+
+  let itemsHtml = '';
+  
+  // Renderizar los detalles de la orden en el div temporal
+  orderItems.forEach(item => {
+    const quantity = item.quantity || 1;
+    const price = item.price || 0;
+    const itemTotal = price * quantity;
+    itemsHtml += `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 5px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">
+        <span style="flex-grow: 1;">${item.name} (x${quantity})</span>
+        <span>$${itemTotal.toFixed(2)}</span>
+      </div>
+    `;
+  });
+
+  tempReceipt.innerHTML = `
+    <h2 style="color: #c35555;">Factura de OnPromotion - Orden #${orderId}</h2>
+    <p>Fecha de Orden: ${new Date(orderDate).toLocaleDateString()}</p>
+    <hr/>
+    <h3 style="margin-top: 15px;">Detalle de Productos</h3>
+    ${itemsHtml}
+    <hr style="border-top: 2px solid #000;"/>
+    <div style="display: flex; justify-content: space-between; font-size: 1.5em; font-weight: bold; margin-top: 10px;">
+        <span>TOTAL:</span>
+        <span>$${orderTotal.toFixed(2)}</span>
+    </div>
+  `;
+  
+  // Añadir el div temporal al cuerpo para que html2canvas pueda renderizarlo
+  document.body.appendChild(tempReceipt);
+
+  try {
+    const canvas = await html2canvas(tempReceipt, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    
+    // Configuración de jsPDF
+    const pdf = new jsPDF('p', 'mm', 'a4'); 
+    const imgWidth = 210;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight); 
+    pdf.save(`recibo-onpromotion-${orderId}.pdf`);
+
+  } catch (err) {
+    console.error("Error al generar el PDF:", err);
+    alert("Hubo un error al generar el PDF.");
+  } finally {
+    // Limpiar el div temporal del cuerpo
+    document.body.removeChild(tempReceipt);
+  }
+};
+
+
+export const Account = () => { 
+  const { user, loading: authLoading, isAdmin, signOut } = useAuth(); // IMPORTAMOS isAdmin y signOut
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [dataLoading, setDataLoading] = useState(true);
 
-  // 🚩 FUNCIÓN MOVIDA DENTRO DEL COMPONENTE (Soluciona el problema de SyntaxError/Blank Page)
-  const generatePDF = async (orderItems) => {
-    // Lógica para crear el recibo temporal en el DOM
-    const tempReceipt = document.createElement('div');
-    tempReceipt.style.padding = '20px';
-    tempReceipt.style.backgroundColor = '#ffffff';
-    tempReceipt.style.color = '#000000';
-    tempReceipt.style.maxWidth = '600px';
+  // Redireccionar si no está logueado
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth'); 
+    }
+  }, [authLoading, user, navigate]);
 
-    let total = 0;
-    let itemsHtml = '';
 
-    orderItems.forEach(item => {
-      const quantity = item.quantity || 1;
-      const price = item.price || 0;
-      const itemTotal = price * quantity;
-      total += itemTotal;
-      itemsHtml += `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-          <span>${item.name} (x${quantity})</span>
-          <span>$${itemTotal.toFixed(2)}</span>
-        </div>
-      `;
-    });
+  // Cargar historial de órdenes del usuario
+  const fetchOrders = async () => {
+    if (!user) return; 
 
-    tempReceipt.innerHTML = `
-      <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="color: #c35555; margin: 0;">OnPromotion</h2>
-        <p style="font-size: 0.8em; margin: 5px 0 0;">FACTURA DE VENTA - RE-DESCARGA</p>
-      </div>
+    setDataLoading(true);
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', user.id) // Filtrar solo las órdenes de este usuario
+      .order('created_at', { ascending: false });
 
-      <p style="font-weight: bold;">Cliente: ${user.email}</p>
-      <p>Fecha de Orden: ${new Date().toLocaleDateString()}</p>
-      <hr style="border-color: #000000; margin: 15px 0;"/>
-      
-      <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr style="background-color: #e0e0e0;">
-            <th style="padding: 8px; text-align: left; border: 1px solid #ccc;">Producto</th>
-            <th style="padding: 8px; text-align: center; border: 1px solid #ccc;">Cant.</th>
-            <th style="padding: 8px; text-align: right; border: 1px solid #ccc;">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${orderItems.map(item => `
-            <tr>
-              <td style="padding: 8px; border: 1px solid #ccc;">${item.name}</td>
-              <td style="padding: 8px; text-align: center; border: 1px solid #ccc;">${item.quantity || 1}</td>
-              <td style="padding: 8px; text-align: right; border: 1px solid #ccc;">$${(item.price * (item.quantity || 1)).toFixed(2)}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-
-      <div style="text-align: right; margin-top: 20px;">
-        <p style="font-weight: bold; font-size: 1.5em; color: #c35555; margin: 0;">TOTAL PAGADO: $${total.toFixed(2)}</p>
-      </div>
-
-      <div style="text-align: center; margin-top: 40px; padding-top: 10px; border-top: 1px solid #ccc;">
-        <p style="font-style: italic; color: #666; margin: 0;">
-            ¡Gracias por preferirnos! Re-descarga exitosa.
-        </p>
-      </div>
-    `;
-
-    document.body.appendChild(tempReceipt);
-
-    // Captura con html2canvas
-    const canvas = await html2canvas(tempReceipt, { scale: 2, useCORS: true });
-    document.body.removeChild(tempReceipt);
-
-    // --- LÓGICA DE PDF SIMPLIFICADA (Elimina el bucle while inestable) ---
-    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-    const imgWidth = 200;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    pdf.addImage(imgData, 'JPEG', 5, 5, imgWidth, imgHeight);
-
-    pdf.save(`recibo-re-descarga-${new Date().getTime()}.pdf`);
+    if (error) {
+      console.error("Error al cargar órdenes:", error);
+    } else {
+      // Aseguramos que items_json sea parseado si se guardó como texto (aunque Supabase lo guarda como JSONB)
+      const parsedData = data.map(order => ({
+        ...order,
+        items_json: typeof order.items_json === 'string' ? JSON.parse(order.items_json) : order.items_json
+      }));
+      setOrders(parsedData);
+    }
+    setDataLoading(false);
   };
-  // -----------------------------------------------------------------------
-
 
   useEffect(() => {
     if (user) {
       fetchOrders();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user]); // Recargar al cambiar de usuario
 
-  const fetchOrders = async () => {
-    setDataLoading(true);
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error al cargar órdenes:', error);
-      setOrders([]);
-    } else {
-      // Asegurar que items_json sea un array si está vacío
-      setOrders(data.map(order => ({
-        ...order,
-        items_json: Array.isArray(order.items_json) ? order.items_json : []
-      })));
-    }
-    setDataLoading(false);
-  };
-
-  if (loading || dataLoading) {
-    return <h2 style={{ textAlign: 'center', marginTop: '50px' }}>Cargando historial de compras...</h2>;
+  
+  if (authLoading || dataLoading) {
+    return <h2 style={{ textAlign: 'center', marginTop: '50px' }}>Cargando datos de la cuenta...</h2>;
+  }
+  
+  if (!user) {
+    return <h2 style={{ textAlign: 'center', marginTop: '50px' }}>Debes iniciar sesión para ver tu cuenta.</h2>;
   }
 
   return (
-    <div style={{ maxWidth: '800px', margin: '40px auto', padding: '20px' }}>
+    <div style={{ maxWidth: '900px', margin: '40px auto', padding: '20px' }}>
       <h1>Mi Cuenta: Historial de Compras</h1>
+      
+      <p>Usuario: <strong>{user.email}</strong></p>
+      
+      {/* 🚩 ZONA DE ADMINISTRADOR CONDICIONAL */}
+      {isAdmin && (
+        <div style={{ 
+          marginBottom: '30px', 
+          padding: '15px', 
+          backgroundColor: '#ffeaa7', 
+          border: '1px solid #fab340',
+          borderRadius: '5px',
+          textAlign: 'center'
+        }}>
+          <p style={{ margin: 0, fontWeight: 'bold' }}>Acceso de Administrador</p>
+          <Link 
+            to="/admin/products"
+            style={{ 
+              display: 'inline-block', 
+              marginTop: '10px', 
+              padding: '8px 15px', 
+              backgroundColor: '#c35555', 
+              color: 'white', 
+              textDecoration: 'none',
+              borderRadius: '4px',
+              fontWeight: 'bold'
+            }}
+          >
+            ⚙️ Gestionar Productos
+          </Link>
+        </div>
+      )}
+      {/* -------------------------------------- */}
+
+      <button 
+        onClick={signOut} 
+        style={{ 
+          backgroundColor: '#dc3545', 
+          color: 'white', 
+          padding: '10px 15px', 
+          borderRadius: '5px',
+          border: 'none',
+          cursor: 'pointer',
+          marginBottom: '30px'
+        }}
+      >
+        Cerrar Sesión
+      </button>
 
       {orders.length === 0 ? (
         <p style={{ textAlign: 'center', fontSize: '1.2em' }}>Aún no has realizado ninguna compra.</p>
@@ -140,20 +182,28 @@ export const Account = () => { // <--- EL COMPONENTE SE EXPORTA CORRECTAMENTE
               <p>Fecha: {new Date(order.created_at).toLocaleDateString()}</p>
               <p style={{ fontSize: '1.4em', fontWeight: 'bold', color: '#1d4ed8' }}>Total: ${parseFloat(order.total).toFixed(2)}</p>
             </div>
-
+            
             <p>Detalle de productos:</p>
             <ul style={{ listStyleType: 'disc', paddingLeft: '20px', fontSize: '0.9em' }}>
-              {/* Nos aseguramos de que order.items_json es un array antes de mapear */}
+              {/* Nos aseguramos de que items_json sea un array antes de mapear */}
               {Array.isArray(order.items_json) && order.items_json.map((item, index) => (
-                <li key={item.id || index}>{item.name} (x{item.quantity}) - ${(item.price * item.quantity).toFixed(2)}</li>
+                <li key={item.id || index}>{item.name} (x{item.quantity || 1}) - ${(item.price * (item.quantity || 1)).toFixed(2)}</li>
               ))}
             </ul>
 
-            <button
-              onClick={() => generatePDF(order.items_json)}
-              style={{ marginTop: '10px', backgroundColor: '#10b981' }}
+            <button 
+              onClick={() => generatePDF(order.items_json, order.id, order.created_at, order.total)}
+              style={{ 
+                marginTop: '15px',
+                backgroundColor: 'rgb(195, 85, 85)', 
+                color: 'white', 
+                padding: '8px 15px', 
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer'
+              }}
             >
-              Descargar Recibo (PDF)
+              Re-descargar Factura (PDF)
             </button>
           </div>
         ))

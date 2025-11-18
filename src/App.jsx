@@ -1,110 +1,93 @@
-// src/App.jsx (CORREGIDO Y ACTUALIZADO)
+// src/App.jsx
 import React from 'react';
-// Importaciones consolidadas: eliminamos la doble declaración
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'; 
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { useCartStore } from './store/cartStore'; // Para mostrar la cantidad en el carrito
 
-// Importaciones para el nuevo icono del carrito
-import { FaShoppingCart } from 'react-icons/fa'; // 🚩 Asegúrate de tener 'react-icons' instalado
-import { useCartStore } from './store/cartStore'; 
-
-// Tus importaciones de componentes y servicios
+// Importaciones de Páginas y Componentes
 import { ProductList } from './components/ProductList';
+import { ProductDetail } from './pages/ProductDetail'; 
+import { CartPage } from './pages/CartPage'; 
 import { Checkout } from './pages/Checkout';
 import { Account } from './pages/Account'; 
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminProducts } from './pages/AdminProducts'; // NUEVA PÁGINA DE ADMIN
 import AuthForm from './components/AuthForm';
-import { CartPage } from './pages/CartPage'; 
-import './App.css';
+
+// Componentes de Autenticación y Rutas Protegidas
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute'; // Asumimos que tienes este componente
+
+// Importación de estilos
+import './App.css'; 
 
 // Importa tu archivo de logo (AJUSTA ESTA RUTA SI ES NECESARIO)
 import OnPromotionLogo from './assets/onpromotion_logo.jpg'; 
 
-// Componente que maneja el contenido, la navegación y el layout (header/footer)
-const AppContent = () => {
+// ------------------------------------------------------------------
+// Componente Header (se puede mover a un archivo separado, pero lo incluimos aquí por simplicidad)
+const Header = () => {
   const { isLoggedIn, signOut, loading } = useAuth();
-  
-  // Usamos el store del carrito para obtener el contador de items
   const { items } = useCartStore();
-  const itemCount = Array.isArray(items) ? items.reduce((total, item) => total + (item.quantity || 0), 0) : 0;
+  const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
   const handleLogout = () => {
     signOut();
   }
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '100px', fontSize: '1.5rem', color: '#3b82f6' }}>
-        Cargando sesión...
+  return (
+    <nav>
+      <div className="nav-logo">
+        <Link to="/">
+          <img src={OnPromotionLogo} alt="OnPromotion Logo" style={{ height: '40px' }} />
+        </Link>
       </div>
-    );
-  }
+      <div className="nav-links">
+        <Link to="/">Productos</Link>
+        <Link to="/cart">
+          Carrito ({cartItemCount})
+        </Link>
+        
+        {loading ? (
+            <span style={{ color: '#ccc' }}>Cargando...</span>
+        ) : isLoggedIn ? (
+          <>
+            <Link to="/account">Mi Cuenta</Link>
+            <button 
+              onClick={handleLogout}
+              style={{ 
+                backgroundColor: '#dc3545', 
+                color: 'white', 
+                padding: '8px 15px', 
+                borderRadius: '5px',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              Cerrar Sesión
+            </button>
+          </>
+        ) : (
+          <Link to="/auth">Iniciar Sesión</Link>
+        )}
+      </div>
+    </nav>
+  );
+};
+// ------------------------------------------------------------------
 
+
+// Componente que maneja el contenido, la navegación y el layout
+const AppContent = () => {
   return (
     <>
-      {/* -------------------- NAVEGACIÓN (HEADER) -------------------- */}
-      <nav>
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+      <Header />
 
-          {/* LOGO COMO LINK DE INICIO (HOME) */}
-          <Link to="/" style={{ padding: '0', background: 'none' }}>
-            <img
-              src={OnPromotionLogo}
-              alt="Logo OnPromotion"
-              style={{ height: '40px', width: 'auto' }}
-            />
-          </Link>
-
-          {/* Enlace condicional a "Mi Cuenta" */}
-          {isLoggedIn && (
-            <Link to="/account">Mi Cuenta</Link>
-          )}
-
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* Botón de Logout o Link de Login */}
-          {isLoggedIn ? (
-            <button onClick={handleLogout} className="nav-button">Logout</button>
-          ) : (
-            <Link to="/login">Login</Link>
-          )}
-
-          {/* 🚩 NUEVO BOTÓN/ICONO DEL CARRITO */}
-          <Link to="/cart" style={{ position: 'relative', color: '#1f2937', textDecoration: 'none', fontSize: '1.5em' }}>
-            <FaShoppingCart />
-            {itemCount > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '-10px',
-                right: '-10px',
-                backgroundColor: '#c35555', // Usando tu color primario
-                color: 'white',
-                borderRadius: '50%',
-                padding: '2px 6px',
-                fontSize: '0.6em',
-                fontWeight: 'bold',
-                lineHeight: '1',
-              }}>
-                {itemCount}
-              </span>
-            )}
-          </Link>
-          
-          {/* 🚩 ELIMINAMOS <CartView /> de aquí. Ahora el icono lleva a CartPage */}
-        </div>
-      </nav>
-
-      {/* -------------------- CONTENIDO (ROUTES) -------------------- */}
-      {/* Añadimos minHeight para empujar el footer hacia abajo */}
-      <div style={{ padding: '20px', minHeight: '60vh' }}>
+      <div className="main-content">
         <Routes>
           {/* Rutas Públicas */}
           <Route path="/" element={<ProductList />} />
-          <Route path="/login" element={<AuthForm />} />
-          
-          {/* 🚩 RUTA PÚBLICA PARA EL CARRITO (MOVIDA AQUÍ, DENTRO DE <Routes>) */}
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/auth" element={<AuthForm />} /> 
 
           {/* Rutas Protegidas (Requieren Login) */}
           <Route
@@ -115,7 +98,6 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/checkout"
             element={
@@ -124,30 +106,40 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
+
+          {/* NUEVA RUTA DE ADMINISTRACIÓN PROTEGIDA (Requiere Login) */}
+          <Route
+            path="/admin/products"
+            element={
+              <ProtectedRoute>
+                {/* La validación de 'isAdmin' está dentro de AdminProducts.jsx */}
+                <AdminProducts />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Ruta para Not Found */}
+          <Route path="*" element={<h2 style={{ textAlign: 'center', marginTop: '50px' }}>404 - Página no encontrada</h2>} />
         </Routes>
       </div>
 
       {/* -------------------- PIE DE PÁGINA (FOOTER) -------------------- */}
       <footer className="app-footer">
         <div className="footer-content">
-
           <div className="footer-section">
             <h4>Sobre OnPromotion</h4>
             <p>La solución líder en gestión de promociones digitales.</p>
           </div>
-
           <div className="footer-section footer-links">
             <h4>Enlaces Rápidos</h4>
             <a href="#">Términos y Condiciones</a>
             <a href="#">Política de Privacidad</a>
           </div>
-
           <div className="footer-section footer-contact">
             <h4>Contacto</h4>
             <p>Email: soporte@onpromotion.com</p>
             <p>Tel: +54 11 5555-1234</p>
           </div>
-
         </div>
         <div className="footer-copy">
           © {new Date().getFullYear()} OnPromotion. Todos los derechos reservados.

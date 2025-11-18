@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
 
 export const CartPage = () => {
-  // 🚩 CAMBIO: Reemplazamos 'removeFromCart' por 'decreaseQuantity'
+  // CAMBIO: Reemplazamos 'removeFromCart' por 'decreaseQuantity'
   const { items, getCartTotal, decreaseQuantity, clearCart } = useCartStore();
   const navigate = useNavigate();
 
@@ -32,7 +32,7 @@ export const CartPage = () => {
                   {item.name} (x{item.quantity}) - ${item.price ? (item.price * item.quantity).toFixed(2) : '0.00'}
                 </span>
                 <button 
-                  // 🚩 CAMBIO CRÍTICO: Usamos la nueva función para reducir 1 unidad
+                  // CAMBIO CRÍTICO: Usamos la nueva función para reducir 1 unidad
                   onClick={() => decreaseQuantity(item.id)}
                   style={{ 
                     backgroundColor: '#dc3545', 
@@ -57,7 +57,7 @@ export const CartPage = () => {
             <button 
               onClick={handleCheckout}
               style={{ 
-                backgroundColor: '#28a745', 
+                backgroundColor: '#0FA0CE', 
                 color: 'white', 
                 border: 'none', 
                 padding: '10px 20px', 
@@ -67,7 +67,7 @@ export const CartPage = () => {
                 marginRight: '10px'
               }}
             >
-              🛒 Ir a Pagar
+              Ir a Pagar
             </button>
             <button 
               onClick={clearCart}

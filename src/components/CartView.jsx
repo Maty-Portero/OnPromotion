@@ -7,7 +7,7 @@ export const CartView = () => {
 
   return (
     <div className="cart-view">
-      <h2>🛒 Carrito</h2>
+      <h2>Carrito</h2>
       {items.length === 0 ? (
         <p>El carrito está vacío.</p>
       ) : (
