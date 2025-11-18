@@ -1,16 +1,15 @@
-// src/store/cartStore.js
+// src/store/cartStore.js (ACTUALIZADO)
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware'; // 1. IMPORTAR PERSIST
+import { persist } from 'zustand/middleware'; 
 
-// Definición de tipos eliminada, ahora es JavaScript estándar
-
-// 2. ENVOLVER create CON persist
 export const useCartStore = create(
   persist(
     (set, get) => ({
       items: [],
 
+      // AÑADIR PRODUCTOS (SIN CAMBIOS)
       addToCart: (product) => {
+        // ... (Tu lógica existente para añadir o incrementar) ...
         set((state) => {
           const existingItem = state.items.find(item => item.id === product.id);
 
@@ -30,6 +29,32 @@ export const useCartStore = create(
         });
       },
 
+      // 🚩 NUEVA FUNCIÓN: Decrementa la cantidad o elimina el producto
+      decrementQuantity: (itemId) => {
+        set((state) => {
+          const existingItem = state.items.find(item => item.id === itemId);
+
+          if (!existingItem) return state; // No existe el ítem
+
+          if (existingItem.quantity > 1) {
+            // Caso 1: Decrementar la cantidad
+            return {
+              items: state.items.map(item =>
+                item.id === itemId
+                  ? { ...item, quantity: item.quantity - 1 }
+                  : item
+              ),
+            };
+          } else {
+            // Caso 2: Eliminar el producto si la cantidad es 1
+            return {
+              items: state.items.filter(item => item.id !== itemId),
+            };
+          }
+        });
+      },
+
+      // ELIMINAR COMPLETAMENTE (SIN CAMBIOS)
       removeFromCart: (itemId) => {
         set((state) => ({
           items: state.items.filter(item => item.id !== itemId),
@@ -43,12 +68,9 @@ export const useCartStore = create(
         return total.toFixed(2);
       },
     }),
-    // 3. OPCIONES DE CONFIGURACIÓN DEL PERSIST
     {
-      name: 'shopping-cart-storage', // Nombre clave en localStorage
-      getStorage: () => localStorage, // Indica que use localStorage
-      // Opcional: whitelist o blacklist de estados
-      // whitelist: ['items'], 
+      name: 'shopping-cart-storage',
+      getStorage: () => localStorage,
     }
-  ) // Cierre del persist
-); // Cierre del create
+  )
+);
