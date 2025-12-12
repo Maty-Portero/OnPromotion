@@ -31,8 +31,8 @@ const generatePDF = async (orderItems, orderId, orderDate, orderTotal) => {
   });
 
   tempReceipt.innerHTML = `
-    <h2 style="color: #c35555;">Factura de OnPromotion - Orden #${orderId}</h2>
-    <p>Fecha de Orden: ${new Date(orderDate).toLocaleDateString()}</p>
+    <h2 style="color: #c35555;">Factura de OnPromotion - Cotización #${orderId}</h2>
+    <p>Fecha de Cotización: ${new Date(orderDate).toLocaleDateString()}</p>
     <hr/>
     <h3 style="margin-top: 15px;">Detalle de Productos</h3>
     ${itemsHtml}
@@ -123,7 +123,7 @@ export const Account = () => {
 
   return (
     <div style={{ maxWidth: '900px', margin: '40px auto', padding: '20px' }}>
-      <h1>Mi Cuenta: Historial de Compras</h1>
+      <h1>Mi Cuenta: Historial de Cotización</h1>
       
       <p>Usuario: <strong>{user.email}</strong></p>
       
@@ -173,12 +173,12 @@ export const Account = () => {
       </button>
 
       {orders.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '1.2em' }}>Aún no has realizado ninguna compra.</p>
+        <p style={{ textAlign: 'center', fontSize: '1.2em' }}>Aún no has realizado ninguna cotización.</p>
       ) : (
         orders.map((order) => (
           <div key={order.id} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '20px', borderRadius: '8px', backgroundColor: '#fff', boxShadow: 'var(--shadow-light)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <p><strong>Orden #{order.id}</strong></p>
+              <p><strong>Cotización #{order.id}</strong></p>
               <p>Fecha: {new Date(order.created_at).toLocaleDateString()}</p>
               <p style={{ fontSize: '1.4em', fontWeight: 'bold', color: '#1d4ed8' }}>Total: ${parseFloat(order.total).toFixed(2)}</p>
             </div>

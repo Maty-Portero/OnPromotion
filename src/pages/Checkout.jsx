@@ -107,7 +107,7 @@ export const Checkout = () => {
                 alt="Logo OnPromotion" 
                 style={{ height: '50px', display: 'block', margin: '0 auto' }}
             />
-            <h2 style={{ color: '#c35555', margin: '5px 0 0' }}>REMITO</h2>
+            <h2 style={{ color: '#c35555', margin: '5px 0 0' }}>Preupuesto</h2>
             <p style={{ fontSize: '0.8em', margin: 0 }}>Razón Social: OnPromotion S.A. | cuit: XXXXXX</p>
         </div>
         
@@ -142,13 +142,6 @@ export const Checkout = () => {
         <div style={{ textAlign: 'right', marginTop: '30px' }}>
             <p style={{ fontWeight: 'bold', fontSize: '1.5em', color: '#c35555', margin: 0 }}>TOTAL PAGADO: ${finalTotalForDisplay}</p>
         </div>
-
-        {/* PIE DE PÁGINA Y MENSAJE */}
-        <div style={{ textAlign: 'center', marginTop: '40px', paddingTop: '15px', borderTop: '1px solid #ccc' }}>
-            <p style={{ fontStyle: 'italic', color: '#666', margin: 0 }}>
-                ¡Gracias por tu compra! Tu satisfacción es nuestra prioridad.
-            </p>
-        </div>
       </div>
 
       <div style={{ textAlign: 'center', marginTop: '30px' }}>
@@ -165,7 +158,7 @@ export const Checkout = () => {
             fontWeight: 'bold'
           }}
         >
-          Pagar y Descargar Remito
+          Pagar y Descargar Presupuesto
         </button>
       </div>
     </div>

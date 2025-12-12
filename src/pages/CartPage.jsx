@@ -1,36 +1,34 @@
-// src/pages/CartPage.jsx
+// src/pages/CartPage.jsx (VERSIÓN FINAL CON MAXLENGTH)
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCartStore } from '../store/cartStore'; 
+import { useCartStore } from '../store/cartStore';
 
 export const CartPage = () => {
-  // 🚩 Importamos las funciones necesarias, incluyendo la nueva decrementQuantity
+  // Importamos las funciones necesarias
   const { 
     items, 
     getCartTotal, 
     removeFromCart, 
     clearCart, 
     decrementQuantity,
-    // addToCart no se desestructura aquí, pero se puede acceder vía useCartStore.getState().addToCart
+    setQuantity 
   } = useCartStore(); 
   
   const navigate = useNavigate();
 
+  // El totalAmount ya es un string con toFixed(2)
   const totalAmount = getCartTotal();
-  // El totalAmount ya está formateado a string con toFixed(2) dentro del store, 
-  // pero lo parseamos para asegurarnos si la store devuelve un número o string.
-  const finalTotalForDisplay = parseFloat(totalAmount) ? parseFloat(totalAmount).toFixed(2) : '0.00';
+  const finalTotalForDisplay = totalAmount;
 
   const handleCheckout = () => {
-    // Navega a la página de Checkout (donde está la lógica de pago y PDF)
     navigate('/checkout');
   };
-
-  // Función auxiliar para incrementar la cantidad (reutilizando addToCart)
+  
+  // Función auxiliar para el botón de incremento
   const handleIncrement = (item) => {
-    // Usamos useCartStore.getState() para acceder a la función addToCart si no la desestructuramos
     useCartStore.getState().addToCart(item);
   }
+
 
   return (
     <div style={{ maxWidth: '800px', margin: '40px auto', padding: '20px' }}>
@@ -58,12 +56,12 @@ export const CartPage = () => {
                   {item.name} (${item.price ? item.price.toFixed(2) : '0.00'})
                 </span>
 
-                {/* Controles de Cantidad */}
+                {/* Controles de Cantidad con Input */}
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                   
-                  {/* BOTÓN PARA DECREMENTAR (Quitar de a 1) */}
+                  {/* BOTÓN PARA DECREMENTAR */}
                   <button 
-                    onClick={() => decrementQuantity(item.id)} // 👈 Llama a la nueva función
+                    onClick={() => decrementQuantity(item.id)}
                     style={{ 
                       backgroundColor: '#dc3545',
                       color: 'white',
@@ -77,13 +75,31 @@ export const CartPage = () => {
                     -
                   </button>
                   
-                  <span style={{ padding: '5px 15px', border: '1px solid #ccc', backgroundColor: '#f9f9f9' }}>
-                    {item.quantity}
-                  </span>
+                  {/* INPUT DE CANTIDAD CON MAXLENGTH */}
+                  <input 
+                    type="number"
+                    min="1"
+                    maxLength={7} // 👈 7 DÍGITOS MÁXIMO
+                    value={item.quantity}
+                    onChange={(e) => {
+                        // Limitar a 7 dígitos en el estado antes de llamar a setQuantity
+                        const value = e.target.value.slice(0, 7); 
+                        setQuantity(item.id, value);
+                    }}
+                    style={{
+                        width: '80px',
+                        padding: '5px',
+                        textAlign: 'center',
+                        border: '1px solid #ccc',
+                        outline: 'none',
+                        margin: '0',
+                        fontSize: '1em'
+                    }}
+                  />
                   
                   {/* BOTÓN PARA INCREMENTAR */}
                   <button 
-                    onClick={() => handleIncrement(item)} 
+                    onClick={() => handleIncrement(item)}
                     style={{ 
                       backgroundColor: '#28a745',
                       color: 'white',
